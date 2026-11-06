@@ -13,6 +13,14 @@
     "Developer Tools"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guidone/raycast-graphql-explorer.git"
+  },
+  "homepage": "https://github.com/guidone/raycast-graphql-explorer#readme",
+  "bugs": {
+    "url": "https://github.com/guidone/raycast-graphql-explorer/issues"
+  },
   "commands": [
     {
       "name": "queries",

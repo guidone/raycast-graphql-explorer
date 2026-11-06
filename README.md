@@ -57,6 +57,35 @@ The response is shown as pretty-printed JSON, with the HTTP status, timing, size
 - Raycast form text areas cannot highlight syntax. Queries are highlighted in the list details, the query preview and the response view.
 - Environments, queries and the last-used variables are kept in this extension's Raycast local storage.
 
+## Running from source
+
+You need [Raycast](https://www.raycast.com), Node.js and npm.
+
+```bash
+git clone https://github.com/guidone/raycast-graphql-explorer.git
+cd raycast-graphql-explorer
+npm install
+npm run dev
+```
+
+`npm run dev` loads the extension into Raycast in development mode and rebuilds it when you change a file. The extension stays in Raycast after you stop the command.
+
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Run the extension in Raycast and rebuild on every change |
+| `npm run build` | Build the extension |
+| `npm run lint` | Check the manifest, icons, ESLint and Prettier |
+| `npm run fix-lint` | Fix ESLint and Prettier problems |
+| `npm run publish` | Open a pull request that submits the extension to the Raycast Store |
+
+## Issues and contributions
+
+Report bugs and request features in [GitHub issues](https://github.com/guidone/raycast-graphql-explorer/issues). Pull requests are welcome. Run `npm run lint` before you open one.
+
+## License
+
+[MIT](LICENSE)
+
 ## Credits
 
 Icons: [Font Awesome Free](https://fontawesome.com) by Fonticons, Inc., licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
