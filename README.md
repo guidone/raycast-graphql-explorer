@@ -1,6 +1,13 @@
 # GraphQL Explorer
 
-Save GraphQL queries against named environments and run them from Raycast.
+GraphQL Explorer lets you run GraphQL APIs from Raycast, without opening a browser playground. Save the queries and mutations you use often, attach each one to an environment such as local, staging or production, and run it from Raycast's search bar.
+
+- **Environments**: an environment is an endpoint URL plus the headers sent with every request, such as an `Authorization` token. You can run a saved query against a different environment with one shortcut.
+- **Saved queries**: queries and mutations, each with its own icon and color. Search them by name and filter them by environment.
+- **Variables**: when a query declares variables, the extension asks for them in a form. If the server allows introspection, the form lists enum values and pre-fills input objects with their required fields.
+- **Responses**: pretty-printed JSON with the HTTP status, timing, size and number of GraphQL errors. You can also copy the request as a curl command.
+
+The extension runs on macOS and Windows. Environments, queries and variables are stored in Raycast's local storage. The only network requests go to the endpoints you configure.
 
 ## Commands
 
