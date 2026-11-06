@@ -11,6 +11,7 @@ import {
   buildVariables,
   convertRawValue,
   initialRawValue,
+  isCompatible,
   NOT_SET,
   prettyJson,
   usesCheckbox,
@@ -22,17 +23,6 @@ import { ResultView } from "./ResultView";
 interface Props {
   queryId: string;
   environmentId: string;
-}
-
-/** Whether a raw value can be shown by the field that `spec` renders (kinds may change once the schema loads). */
-function isCompatible(spec: VariableSpec, value: RawValue | undefined): boolean {
-  if (value === undefined) return false;
-  if (usesCheckbox(spec)) return typeof value === "boolean";
-  if (value === null) return allowsEmptyString(spec);
-  if (typeof value !== "string") return false;
-  if (spec.kind === "enum") return (value === NOT_SET && !spec.nonNull) || Boolean(spec.enumValues?.includes(value));
-  if (spec.kind === "boolean") return [NOT_SET, "true", "false"].includes(value);
-  return true;
 }
 
 function fieldInfo(spec: VariableSpec): string {

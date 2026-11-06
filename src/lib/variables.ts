@@ -171,23 +171,23 @@ export const NOT_SET = "";
 export const allowsEmptyString = (spec: VariableSpec) =>
   spec.kind === "string" || spec.kind === "id" || spec.kind === "scalar";
 
+/** Whether a raw value can be shown by the field that `spec` renders (kinds may change once the schema loads). */
+export function isCompatible(spec: VariableSpec, value: RawValue | undefined): value is RawValue {
+  if (value === undefined) return false;
+  if (usesCheckbox(spec)) return typeof value === "boolean";
+  if (value === null) return allowsEmptyString(spec);
+  if (typeof value !== "string") return false;
+  if (spec.kind === "enum") return (value === NOT_SET && !spec.nonNull) || Boolean(spec.enumValues?.includes(value));
+  if (spec.kind === "boolean") return [NOT_SET, "true", "false"].includes(value);
+  return true;
+}
+
 /** The value shown in the form before the user types anything. */
 export function initialRawValue(spec: VariableSpec, saved?: RawValue): RawValue {
-  if (usesCheckbox(spec)) {
-    if (typeof saved === "boolean") return saved;
-    return typeof spec.defaultValue === "boolean" ? spec.defaultValue : false;
-  }
+  // The remembered value, unless the field can no longer show it (e.g. the variable's type changed).
+  if (isCompatible(spec, saved)) return saved;
+  if (usesCheckbox(spec)) return typeof spec.defaultValue === "boolean" ? spec.defaultValue : false;
   const unset = allowsEmptyString(spec) ? null : NOT_SET;
-  if (saved === null && unset === null) return null;
-  if (typeof saved === "string") {
-    if (spec.kind === "enum" && saved !== NOT_SET && !spec.enumValues?.includes(saved)) {
-      // Saved value no longer valid for this enum: fall through to the default.
-    } else if (spec.kind === "boolean" && ![NOT_SET, "true", "false"].includes(saved)) {
-      // Same for a nullable boolean.
-    } else {
-      return saved;
-    }
-  }
   // An explicit `= null` default: leave the field unset so the variable is omitted and the declared default applies.
   if (spec.defaultValue === null) return unset;
   if (spec.defaultValue !== undefined) {
