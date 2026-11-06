@@ -67,6 +67,8 @@ export function VariablesForm({ queryId, environmentId }: Props) {
   const operation = operations.find((item) => item.name === operationName) ?? operations[0];
   const specs = useMemo(() => operation?.variables ?? [], [operation]);
   const ready = schemaResult !== undefined && saved !== undefined;
+  // The effect below has given every variable a value, so all fields are shown and hold the remembered inputs.
+  const initialized = ready && specs.every((spec) => values[spec.name] !== undefined);
 
   // Fill in values for fields that are new or whose kind changed (e.g. after the schema was loaded).
   useEffect(() => {
@@ -103,6 +105,11 @@ export function VariablesForm({ queryId, environmentId }: Props) {
 
   async function handleRun() {
     if (!query || !env || !operation) return;
+    if (!initialized) {
+      // Running now would skip the remembered values, and saving would replace them with an empty set.
+      await showToast({ style: Toast.Style.Failure, title: "Variables are still loading" });
+      return;
+    }
     const result = buildVariables(specs, values);
     setErrors(result.errors);
     const invalid = Object.keys(result.errors);
