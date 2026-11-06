@@ -6,7 +6,7 @@ Save GraphQL queries against named environments and run them from Raycast.
 
 ### Manage GraphQL Environments
 
-An environment is a GraphQL endpoint plus the headers sent with every request. Headers go one per line as `Name: value`, for example `Authorization: Bearer <token>`. Lines starting with `#` are ignored.
+An environment is a GraphQL endpoint plus the headers sent with every request. Each header has its own row with a name field and a value field, for example `Authorization` and `Bearer <token>`. Press ⌘N to add a header and ⌃X to remove the header you're editing; both are also in the action panel. Rows left completely empty are ignored when saving.
 
 - Create (⌘N), edit (↵), duplicate (⌘D) and delete (⌃X) environments.
 - **Test Connection** (⌘⇧T) sends `{ __typename }` and reports the HTTP status and timing.

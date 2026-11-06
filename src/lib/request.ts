@@ -1,4 +1,4 @@
-import { GraphQLEnvironment, Header } from "./types";
+import { GraphQLEnvironment } from "./types";
 
 export const REQUEST_TIMEOUT_MS = 60_000;
 
@@ -26,29 +26,10 @@ export interface ExecutionResult {
 
 // Headers ---------------------------------------------------------------------------------------------------------
 
+/** RFC 9110 token: what `fetch` accepts as a header name. */
 const HEADER_NAME = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
 
-/** Serialises headers to the `Name: value` per line format used in the environment form. */
-export function headersToText(headers: Header[]): string {
-  return headers.map((header) => `${header.name}: ${header.value}`).join("\n");
-}
-
-/** Parses `Name: value` lines. Blank lines and lines starting with `#` or `//` are ignored. */
-export function parseHeadersText(text: string): { headers: Header[]; error?: string } {
-  const headers: Header[] = [];
-  const lines = text.split(/\r?\n/);
-  for (let index = 0; index < lines.length; index++) {
-    const line = lines[index].trim();
-    if (!line || line.startsWith("#") || line.startsWith("//")) continue;
-    const separator = line.indexOf(":");
-    const name = separator > 0 ? line.slice(0, separator).trim() : "";
-    if (!name || !HEADER_NAME.test(name)) {
-      return { headers, error: `Line ${index + 1}: expected "Header-Name: value"` };
-    }
-    headers.push({ name, value: line.slice(separator + 1).trim() });
-  }
-  return { headers };
-}
+export const isValidHeaderName = (name: string) => HEADER_NAME.test(name);
 
 export function buildHeaders(env: Pick<GraphQLEnvironment, "headers">): Record<string, string> {
   const result: Record<string, string> = {

@@ -24,4 +24,10 @@ export const Shortcuts = {
   ReloadSchema: primary("l", ["shift"]),
   Reset: primary("backspace", ["shift"]),
   OpenInEditor: primary("o"),
+  AddRow: primary("n"),
+  // ⌃X like Raycast's own "remove" shortcut; Ctrl+X on Windows is Cut, so add Shift there.
+  RemoveRow: {
+    macOS: { modifiers: ["ctrl"], key: "x" },
+    Windows: { modifiers: ["ctrl", "shift"], key: "x" },
+  },
 } satisfies Record<string, Keyboard.Shortcut>;
