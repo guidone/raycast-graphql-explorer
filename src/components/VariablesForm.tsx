@@ -1,5 +1,5 @@
 import { Action, ActionPanel, Form, Icon, showToast, Toast, useNavigation } from "@raycast/api";
-import { usePromise } from "@raycast/utils";
+import { showFailureToast, usePromise } from "@raycast/utils";
 import { ReactElement, useEffect, useMemo, useState } from "react";
 import { analyzeDocument, operationLabel } from "../lib/document";
 import { clearSchemaCache, loadSchema } from "../lib/schema";
@@ -113,7 +113,12 @@ export function VariablesForm({ queryId, environmentId }: Props) {
       });
       return;
     }
-    await setSavedVariables(query.id, { ...saved, ...values });
+    try {
+      await setSavedVariables(query.id, { ...saved, ...values });
+    } catch (error) {
+      // Remembering the values is a convenience: report the failure, but still run the query.
+      await showFailureToast(error, { title: "Could not save variable values" });
+    }
     push(
       <ResultView
         title={query.name}
@@ -146,7 +151,12 @@ export function VariablesForm({ queryId, environmentId }: Props) {
 
   async function handleReloadSchema() {
     if (!env) return;
-    await clearSchemaCache(env);
+    try {
+      await clearSchemaCache(env);
+    } catch (error) {
+      await showFailureToast(error, { title: "Could not reload schema" });
+      return;
+    }
     refetchSchema();
   }
 
