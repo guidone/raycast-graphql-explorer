@@ -14,7 +14,7 @@ import {
   valueFromASTUntyped,
   VariableDefinitionNode,
 } from "graphql";
-import { RawVariableValues } from "./types";
+import { RawValue, RawVariableValues } from "./types";
 
 /**
  * How a variable is asked for in the variables form:
@@ -167,12 +167,18 @@ export const usesCheckbox = (spec: VariableSpec) => spec.kind === "boolean" && s
 
 export const NOT_SET = "";
 
+/** Free-text kinds, where `""` and blank strings are values: their "not set" is `null`. */
+export const allowsEmptyString = (spec: VariableSpec) =>
+  spec.kind === "string" || spec.kind === "id" || spec.kind === "scalar";
+
 /** The value shown in the form before the user types anything. */
-export function initialRawValue(spec: VariableSpec, saved?: string | boolean): string | boolean {
+export function initialRawValue(spec: VariableSpec, saved?: RawValue): RawValue {
   if (usesCheckbox(spec)) {
     if (typeof saved === "boolean") return saved;
     return typeof spec.defaultValue === "boolean" ? spec.defaultValue : false;
   }
+  const unset = allowsEmptyString(spec) ? null : NOT_SET;
+  if (saved === null && unset === null) return null;
   if (typeof saved === "string") {
     if (spec.kind === "enum" && saved !== NOT_SET && !spec.enumValues?.includes(saved)) {
       // Saved value no longer valid for this enum: fall through to the default.
@@ -182,22 +188,25 @@ export function initialRawValue(spec: VariableSpec, saved?: string | boolean): s
       return saved;
     }
   }
-  if (spec.defaultValue !== undefined && spec.defaultValue !== null) {
+  // An explicit `= null` default: leave the field unset so the variable is omitted and the declared default applies.
+  if (spec.defaultValue === null) return unset;
+  if (spec.defaultValue !== undefined) {
     if (spec.kind === "json") return JSON.stringify(spec.defaultValue, null, 2);
     return String(spec.defaultValue);
   }
   if (spec.kind === "json") return spec.template ?? "";
   if (spec.kind === "enum" && spec.nonNull) return spec.enumValues?.[0] ?? NOT_SET;
-  return NOT_SET;
+  return unset;
 }
 
 export type ConversionResult = { value: unknown } | { omit: true } | { error: string };
 
 /** Converts a raw form value into the JSON value sent in `variables`. */
-export function convertRawValue(spec: VariableSpec, raw: string | boolean | undefined): ConversionResult {
+export function convertRawValue(spec: VariableSpec, raw: RawValue | undefined): ConversionResult {
   if (typeof raw === "boolean") return { value: raw };
   const text = raw ?? "";
-  if (text.trim() === "") {
+  const unset = allowsEmptyString(spec) ? raw === null || raw === undefined : text.trim() === "";
+  if (unset) {
     if (spec.nonNull && !spec.hasDefault) return { error: "Required" };
     return { omit: true };
   }

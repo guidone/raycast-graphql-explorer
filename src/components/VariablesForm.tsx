@@ -5,8 +5,9 @@ import { analyzeDocument, operationLabel } from "../lib/document";
 import { clearSchemaCache, loadSchema } from "../lib/schema";
 import { Shortcuts } from "../lib/shortcuts";
 import { getSavedVariables, setSavedVariables, useStore } from "../lib/store";
-import { RawVariableValues } from "../lib/types";
+import { RawValue, RawVariableValues } from "../lib/types";
 import {
+  allowsEmptyString,
   buildVariables,
   convertRawValue,
   initialRawValue,
@@ -24,9 +25,10 @@ interface Props {
 }
 
 /** Whether a raw value can be shown by the field that `spec` renders (kinds may change once the schema loads). */
-function isCompatible(spec: VariableSpec, value: string | boolean | undefined): boolean {
+function isCompatible(spec: VariableSpec, value: RawValue | undefined): boolean {
   if (value === undefined) return false;
   if (usesCheckbox(spec)) return typeof value === "boolean";
+  if (value === null) return allowsEmptyString(spec);
   if (typeof value !== "string") return false;
   if (spec.kind === "enum") return (value === NOT_SET && !spec.nonNull) || Boolean(spec.enumValues?.includes(value));
   if (spec.kind === "boolean") return [NOT_SET, "true", "false"].includes(value);
@@ -82,7 +84,7 @@ export function VariablesForm({ queryId, environmentId }: Props) {
     });
   }, [ready, specs, saved]);
 
-  function updateValue(spec: VariableSpec, value: string | boolean) {
+  function updateValue(spec: VariableSpec, value: RawValue) {
     setValues((previous) => ({ ...previous, [spec.name]: value }));
     // Validate JSON while typing; for other fields only clear an error once it is fixed.
     const empty = typeof value === "string" && value.trim() === "";
@@ -240,9 +242,9 @@ export function VariablesForm({ queryId, environmentId }: Props) {
 
 interface FieldProps {
   spec: VariableSpec;
-  value: string | boolean;
+  value: RawValue;
   error?: string;
-  onChange: (value: string | boolean) => void;
+  onChange: (value: RawValue) => void;
 }
 
 function VariableField({ spec, value, error, onChange }: FieldProps): ReactElement {
@@ -273,6 +275,30 @@ function VariableField({ spec, value, error, onChange }: FieldProps): ReactEleme
         value={String(value)}
         onChange={onChange}
       />
+    );
+  }
+
+  if (allowsEmptyString(spec)) {
+    const required = spec.nonNull && !spec.hasDefault;
+    return (
+      <>
+        <Form.TextField
+          {...common}
+          placeholder={spec.type}
+          value={typeof value === "string" ? value : ""}
+          // Clearing the field goes back to "not set": "" is only sent when the checkbox below asks for it.
+          onChange={(text) => onChange(text === "" && value !== "" ? null : text)}
+        />
+        {(value === null || value === "") && (
+          <Form.Checkbox
+            id={`empty:${spec.name}`}
+            label="Send as empty string"
+            info={`Checked: $${spec.name} is sent as "". Unchecked: ${required ? "it is reported as missing" : "it is omitted"}.`}
+            value={value === ""}
+            onChange={(checked) => onChange(checked ? "" : null)}
+          />
+        )}
+      </>
     );
   }
 
